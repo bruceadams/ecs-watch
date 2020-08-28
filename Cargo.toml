@@ -1,0 +1,26 @@
+[package]
+name = "ecs-watch"
+version = "0.1.0"
+authors = ["Bruce Adams <bruce.adams@acm.org>"]
+categories = ["command-line-utilities"]
+description = "Watch AWS Elastic Container Service (ECS) cluster changes"
+edition = "2018"
+homepage = "https://github.com/bruceadams/ecs-watch"
+keywords = ["aws", "cli"]
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/bruceadams/ecs-watch"
+
+[dependencies]
+ansi_term = "*"
+chrono = "*"
+exitfailure = "0"
+rusoto_core = "0.45"
+rusoto_ecs = "0.45"
+snafu = "0"
+time = "*"
+tokio = "0"
+
+[dependencies.clap]
+features = ["wrap_help"]
+version = "3.0.0-beta.1"
