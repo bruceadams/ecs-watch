@@ -8,21 +8,22 @@ use rusoto_ecs::{
 };
 use snafu::{ResultExt, Snafu};
 use std::{default::Default, env, str::FromStr};
-use tokio::time::delay_for;
+use tokio::time::interval;
+use tokio_compat_02::FutureExt;
 
 /// Watch AWS Elastic Container Service (ECS) cluster changes
 #[derive(Clap, Clone, Debug)]
 #[clap(global_setting = ColoredHelp)]
 pub struct Args {
     /// AWS source profile to use. This name references an entry in ~/.aws/credentials
-    #[clap(env = "AWS_PROFILE", long, short = "p")]
+    #[clap(env = "AWS_PROFILE", long, short = 'p')]
     aws_profile: String,
     /// AWS region to target.
     #[clap(
         default_value = "us-east-1",
         env = "AWS_DEFAULT_REGION",
         long,
-        short = "r"
+        short = 'r'
     )]
     aws_region: String,
     /// Cluster name to watch.
@@ -109,20 +110,12 @@ fn print_summary(summary: &[TaskSummary]) {
     }
 }
 
-/// How long to sleep to get the next whole number of seconds.
-fn sleep_duration(seconds: u64) -> std::time::Duration {
-    let now = Utc::now();
-    // let now_seconds = now.timestamp();
-    let now_millis = now.timestamp_subsec_millis() as u64;
-    std::time::Duration::from_millis(1000 * seconds - now_millis)
-}
-
 async fn watch(ecs_client: &EcsClient, cluster_name: &str) -> Result<(), Error> {
-    let mut old_summary = task_summary(&ecs_client, cluster_name).await?;
-    print_summary(&old_summary);
+    let mut old_summary: Vec<TaskSummary> = vec![];
+    let mut clock = interval(core::time::Duration::from_secs(2));
 
     loop {
-        delay_for(sleep_duration(2)).await;
+        clock.tick().await;
 
         let new_summary = task_summary(&ecs_client, cluster_name).await?;
         if old_summary != new_summary {
@@ -245,13 +238,13 @@ async fn main() -> Result<(), exitfailure::ExitFailure> {
     let region = Region::from_str(&args.aws_region)?;
     let ecs_client = EcsClient::new(region.clone());
     if args.detail {
-        detailed(&ecs_client, &args.cluster).await?
+        detailed(&ecs_client, &args.cluster).compat().await?
     };
     if args.one_shot {
-        let summary = task_summary(&ecs_client, &args.cluster).await?;
+        let summary = task_summary(&ecs_client, &args.cluster).compat().await?;
         print_summary(&summary);
     } else {
-        watch(&ecs_client, &args.cluster).await?;
+        watch(&ecs_client, &args.cluster).compat().await?;
     }
     Ok(())
 }
