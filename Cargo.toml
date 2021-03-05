@@ -15,16 +15,15 @@ repository = "https://github.com/bruceadams/ecs-watch"
 ansi_term = "0.12.1"
 chrono = "0.4.19"
 exitfailure = "0.5.1"
-rusoto_core = "0.45.0"
-rusoto_ecs = "0.45.0"
+rusoto_core = "0.46.0"
+rusoto_ecs = "0.46.0"
 snafu = "0.6.9"
 time = "0.2.22"
-tokio-compat-02 = "0.1.0"
 
 [dependencies.clap]
 features = ["wrap_help"]
 version = "3.0.0-beta.2"
 
 [dependencies.tokio]
-version = "0.3.0"
+version = "1.2.0"
 features = ["macros", "rt-multi-thread", "time"]

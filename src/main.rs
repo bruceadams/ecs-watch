@@ -9,7 +9,6 @@ use rusoto_ecs::{
 use snafu::{ResultExt, Snafu};
 use std::{default::Default, env, str::FromStr};
 use tokio::time::interval;
-use tokio_compat_02::FutureExt;
 
 /// Watch AWS Elastic Container Service (ECS) cluster changes
 #[derive(Clap, Clone, Debug)]
@@ -238,13 +237,13 @@ async fn main() -> Result<(), exitfailure::ExitFailure> {
     let region = Region::from_str(&args.aws_region)?;
     let ecs_client = EcsClient::new(region.clone());
     if args.detail {
-        detailed(&ecs_client, &args.cluster).compat().await?
+        detailed(&ecs_client, &args.cluster).await?
     };
     if args.one_shot {
-        let summary = task_summary(&ecs_client, &args.cluster).compat().await?;
+        let summary = task_summary(&ecs_client, &args.cluster).await?;
         print_summary(&summary);
     } else {
-        watch(&ecs_client, &args.cluster).compat().await?;
+        watch(&ecs_client, &args.cluster).await?;
     }
     Ok(())
 }
