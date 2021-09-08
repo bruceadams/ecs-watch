@@ -116,7 +116,7 @@ async fn watch(ecs_client: &EcsClient, cluster_name: &str) -> Result<(), Error> 
     loop {
         clock.tick().await;
 
-        let new_summary = task_summary(&ecs_client, cluster_name).await?;
+        let new_summary = task_summary(ecs_client, cluster_name).await?;
         if old_summary != new_summary {
             print_summary(&new_summary);
             old_summary = new_summary;
@@ -132,15 +132,11 @@ fn naive_date_time(timestamp: &f64) -> NaiveDateTime {
 }
 
 fn newest_time(times: &[Option<f64>]) -> NaiveDateTime {
-    let mut fs: Vec<f64> = times
-        .iter()
-        .filter(|time| time.is_some())
-        .map(|time| time.unwrap())
-        .collect();
+    let mut fs: Vec<&f64> = times.iter().flatten().collect();
     fs.sort_by(|a, b| a.partial_cmp(b).unwrap());
 
     let now = Utc::now().timestamp() as f64;
-    naive_date_time(fs.last().unwrap_or(&now))
+    naive_date_time(fs.last().unwrap_or(&&now))
 }
 
 /// Return a short task definition
