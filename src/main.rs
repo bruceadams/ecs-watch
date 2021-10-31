@@ -1,6 +1,6 @@
 use ansi_term::Style;
 use chrono::{NaiveDateTime, Utc};
-use clap::{AppSettings::ColoredHelp, Clap};
+use clap::{crate_description, crate_version, Parser};
 use rusoto_core::{region::Region, RusotoError};
 use rusoto_ecs::{
     Container, DescribeTasksError, DescribeTasksRequest, Ecs, EcsClient, ListTasksError,
@@ -11,26 +11,25 @@ use std::{default::Default, env, str::FromStr};
 use tokio::time::interval;
 
 /// Watch AWS Elastic Container Service (ECS) cluster changes
-#[derive(Clap, Clone, Debug)]
-#[clap(global_setting = ColoredHelp)]
+#[derive(Clone, Debug, Parser)]
+#[clap(about=crate_description!(), version=crate_version!())]
 pub struct Args {
-    /// AWS source profile to use. This name references an entry in ~/.aws/credentials
-    #[clap(env = "AWS_PROFILE", long, short = 'p')]
-    aws_profile: String,
+    /// AWS source profile to use. This name references an entry in ~/.aws/config
+    #[clap(env = "AWS_PROFILE", long, short)]
+    profile: Option<String>,
+
     /// AWS region to target.
-    #[clap(
-        default_value = "us-east-1",
-        env = "AWS_DEFAULT_REGION",
-        long,
-        short = 'r'
-    )]
-    aws_region: String,
+    #[clap(default_value = "us-east-1", env = "AWS_DEFAULT_REGION", long, short)]
+    region: String,
+
     /// Cluster name to watch.
     #[clap(env = "AWS_ECS_CLUSTER", long, short)]
     cluster: String,
+
     /// Output the full task description response
     #[clap(long, short)]
     detail: bool,
+
     /// Output the summary once and exit. The default is to continue to run,
     /// printing a new summary when anything in the summary changes.
     #[clap(long, short)]
@@ -229,8 +228,10 @@ async fn detailed(ecs_client: &EcsClient, cluster_name: &str) -> Result<(), Erro
 async fn main() -> Result<(), exitfailure::ExitFailure> {
     let args = Args::parse();
 
-    env::set_var("AWS_PROFILE", &args.aws_profile);
-    let region = Region::from_str(&args.aws_region)?;
+    if let Some(ref aws_profile) = args.profile {
+        env::set_var("AWS_PROFILE", aws_profile);
+    }
+    let region = Region::from_str(&args.region)?;
     let ecs_client = EcsClient::new(region.clone());
     if args.detail {
         detailed(&ecs_client, &args.cluster).await?
