@@ -18,12 +18,12 @@ exitfailure = "0.5.1"
 rusoto_core = "0.47.0"
 rusoto_ecs = "0.47.0"
 snafu = "0.6.10"
-time = "0.3.4"
+time = "0.3.5"
 
 [dependencies.clap]
-features = ["wrap_help"]
-version = "3.0.0-beta.5"
+features = ["derive", "env", "cargo", "wrap_help"]
+version = "3.0.4"
 
 [dependencies.tokio]
-version = "1.13.0"
+version = "1.15.0"
 features = ["macros", "rt-multi-thread", "time"]
